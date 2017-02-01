@@ -190,6 +190,7 @@ def flip_axis(x, axis):
     x = x.swapaxes(0, axis)
     return x
 
+
 def standardize(x,
                 preprocessing_function=None,
                 rescale=None,
@@ -242,6 +243,7 @@ def standardize(x,
                           'first by calling `.fit(numpy_data)`.')
     return x
 
+
 def random_transform(x,
                      row_axis=None,
                      col_axis=None,
@@ -278,12 +280,14 @@ def random_transform(x,
                                 [np.sin(theta), np.cos(theta), 0],
                                 [0, 0, 1]])
     if height_shift_range:
-        tx = rng.uniform(-height_shift_range, height_shift_range) * x.shape[img_row_axis]
+        tx = rng.uniform(-height_shift_range,
+                         height_shift_range) * x.shape[img_row_axis]
     else:
         tx = 0
 
     if width_shift_range:
-        ty = rng.uniform(-width_shift_range, width_shift_range) * x.shape[img_col_axis]
+        ty = rng.uniform(-width_shift_range, width_shift_range) * \
+            x.shape[img_col_axis]
     else:
         ty = 0
 
@@ -335,6 +339,7 @@ def random_transform(x,
             x = flip_axis(x, img_row_axis)
 
     return x
+
 
 def array_to_img(x, dim_ordering='default', scale=True):
     """Converts a 3D Numpy array to a PIL Image instance.
@@ -598,7 +603,6 @@ class ImageDataGenerator(object):
             follow_links=follow_links,
             pool=self.pool)
 
-
     def pipeline(self):
         """A pipeline of functions to apply in order to an image.
         """
@@ -617,7 +621,7 @@ class ImageDataGenerator(object):
                 channel_shift_range=self.channel_shift_range,
                 horizontal_flip=self.horizontal_flip,
                 vertical_flip=self.vertical_flip)
-            ),
+             ),
 
             (standardize, dict(
                 preprocessing_function=self.preprocessing_function,
@@ -631,38 +635,38 @@ class ImageDataGenerator(object):
                 std=self.std,
                 zca_whitening=self.zca_whitening,
                 principal_components=self.principal_components)
-            )
+             )
         ]
 
     def standardize(self, x):
         return standardize(x,
-            preprocessing_function=self.preprocessing_function,
-            rescale=self.rescale,
-            channel_axis=self.channel_axis,
-            samplewise_center=self.samplewise_center,
-            samplewise_std_normalization=self.samplewise_std_normalization,
-            featurewise_center=self.featurewise_center,
-            mean=self.mean,
-            featurewise_std_normalization=self.featurewise_std_normalization,
-            std=self.std,
-            zca_whitening=self.zca_whitening,
-            principal_components=self.principal_components)
+                           preprocessing_function=self.preprocessing_function,
+                           rescale=self.rescale,
+                           channel_axis=self.channel_axis,
+                           samplewise_center=self.samplewise_center,
+                           samplewise_std_normalization=self.samplewise_std_normalization,
+                           featurewise_center=self.featurewise_center,
+                           mean=self.mean,
+                           featurewise_std_normalization=self.featurewise_std_normalization,
+                           std=self.std,
+                           zca_whitening=self.zca_whitening,
+                           principal_components=self.principal_components)
 
     def random_transform(self, x):
         return random_transform(x,
-            row_axis=self.row_axis,
-            col_axis=self.col_axis,
-            channel_axis=self.channel_axis,
-            rotation_range=self.rotation_range,
-            height_shift_range=self.height_shift_range,
-            width_shift_range=self.width_shift_range,
-            shear_range=self.shear_range,
-            zoom_range=self.zoom_range,
-            fill_mode=self.fill_mode,
-            cval=self.cval,
-            channel_shift_range=self.channel_shift_range,
-            horizontal_flip=self.horizontal_flip,
-            vertical_flip=self.vertical_flip)
+                                row_axis=self.row_axis,
+                                col_axis=self.col_axis,
+                                channel_axis=self.channel_axis,
+                                rotation_range=self.rotation_range,
+                                height_shift_range=self.height_shift_range,
+                                width_shift_range=self.width_shift_range,
+                                shear_range=self.shear_range,
+                                zoom_range=self.zoom_range,
+                                fill_mode=self.fill_mode,
+                                cval=self.cval,
+                                channel_shift_range=self.channel_shift_range,
+                                horizontal_flip=self.horizontal_flip,
+                                vertical_flip=self.vertical_flip)
 
     def fit(self, x,
             augment=False,
@@ -693,7 +697,8 @@ class ImageDataGenerator(object):
                 'Expected input to be images (as Numpy array) '
                 'following the dimension ordering convention "' + self.dim_ordering + '" '
                 '(channels on axis ' + str(self.channel_axis) + '), i.e. expected '
-                'either 1, 3 or 4 channels on axis ' + str(self.channel_axis) + '. '
+                'either 1, 3 or 4 channels on axis ' +
+                str(self.channel_axis) + '. '
                 'However, it was passed an array with shape ' + str(x.shape) +
                 ' (' + str(x.shape[self.channel_axis]) + ' channels).')
 
@@ -723,10 +728,12 @@ class ImageDataGenerator(object):
             x /= (self.std + K.epsilon())
 
         if self.zca_whitening:
-            flat_x = np.reshape(x, (x.shape[0], x.shape[1] * x.shape[2] * x.shape[3]))
+            flat_x = np.reshape(
+                x, (x.shape[0], x.shape[1] * x.shape[2] * x.shape[3]))
             sigma = np.dot(flat_x.T, flat_x) / flat_x.shape[0]
             u, s, _ = linalg.svd(sigma)
-            self.principal_components = np.dot(np.dot(u, np.diag(1. / np.sqrt(s + 10e-7))), u.T)
+            self.principal_components = np.dot(
+                np.dot(u, np.diag(1. / np.sqrt(s + 10e-7))), u.T)
 
 
 class Iterator(object):
@@ -743,7 +750,8 @@ class Iterator(object):
         # create multiple random number generators to be used separately in
         # each process when using a multiprocessing.Pool
         if seed:
-            self.rngs = [np.random.RandomState(seed + i) for i in range(batch_size)]
+            self.rngs = [np.random.RandomState(
+                seed + i) for i in range(batch_size)]
         else:
             self.rngs = [np.random.RandomState(i) for i in range(batch_size)]
 
@@ -790,11 +798,12 @@ def process_image_pipeline(tup):
         x = func(x, rng=rng, **kwargs)
     return x
 
+
 def process_image_pipeline_dir(tup):
     """ Worker function for DirectoryIterator multiprocessing.Pool
     """
     (pipeline, fname, directory, grayscale,
-    target_size, dim_ordering, rng) = tup
+     target_size, dim_ordering, rng) = tup
     img = load_img(os.path.join(directory, fname),
                    grayscale=grayscale,
                    target_size=target_size)
@@ -802,6 +811,7 @@ def process_image_pipeline_dir(tup):
     for (func, kwargs) in pipeline:
         x = func(x, rng=rng, **kwargs)
     return x
+
 
 class NumpyArrayIterator(Iterator):
 
@@ -826,8 +836,10 @@ class NumpyArrayIterator(Iterator):
         if self.x.shape[channels_axis] not in {1, 3, 4}:
             raise ValueError('NumpyArrayIterator is set to use the '
                              'dimension ordering convention "' + dim_ordering + '" '
-                             '(channels on axis ' + str(channels_axis) + '), i.e. expected '
-                             'either 1, 3 or 4 channels on axis ' + str(channels_axis) + '. '
+                             '(channels on axis ' +
+                             str(channels_axis) + '), i.e. expected '
+                             'either 1, 3 or 4 channels on axis ' +
+                             str(channels_axis) + '. '
                              'However, it was passed an array with shape ' + str(self.x.shape) +
                              ' (' + str(self.x.shape[channels_axis]) + ' channels).')
         if y is not None:
@@ -841,7 +853,8 @@ class NumpyArrayIterator(Iterator):
         self.save_format = save_format
         self.pool = pool
 
-        super(NumpyArrayIterator, self).__init__(x.shape[0], batch_size, shuffle, seed)
+        super(NumpyArrayIterator, self).__init__(
+            x.shape[0], batch_size, shuffle, seed)
 
     def next(self):
         # for python 2.x.
@@ -849,7 +862,8 @@ class NumpyArrayIterator(Iterator):
         # the indexing of each batch
         # see http://anandology.com/blog/using-iterators-and-generators/
         with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
+            index_array, current_index, current_batch_size = next(
+                self.index_generator)
         # The transformation of images is not under thread lock
         # so it can be done in parallel
 
@@ -858,15 +872,17 @@ class NumpyArrayIterator(Iterator):
         if self.pool:
             pipeline = self.image_data_generator.pipeline()
             result = self.pool.map(process_image_pipeline, (
-                (pipeline, self.x[j], self.rngs[i%self.batch_size])
+                (pipeline, self.x[j], self.rngs[i % self.batch_size])
                 for i, j in enumerate(index_array)))
             batch_x = np.array(result)
         else:
             # TODO: also utilize image_data_generator.pipeline()?
-            batch_x = np.zeros(tuple([current_batch_size] + list(self.x.shape)[1:]))
+            batch_x = np.zeros(
+                tuple([current_batch_size] + list(self.x.shape)[1:]))
             for i, j in enumerate(index_array):
                 x = self.x[j]
-                x = self.image_data_generator.random_transform(x.astype('float32'))
+                x = self.image_data_generator.random_transform(
+                    x.astype('float32'))
                 x = self.image_data_generator.standardize(x)
                 batch_x[i] = x
 
@@ -875,7 +891,8 @@ class NumpyArrayIterator(Iterator):
                 img = array_to_img(batch_x[i], self.dim_ordering, scale=True)
                 fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
                                                                   index=current_index + i,
-                                                                  hash=np.random.randint(1e4),
+                                                                  hash=np.random.randint(
+                                                                      1e4),
                                                                   format=self.save_format)
                 img.save(os.path.join(self.save_to_dir, fname))
         if self.y is None:
@@ -951,9 +968,11 @@ class DirectoryIterator(Iterator):
                             break
                     if is_valid:
                         self.nb_sample += 1
-        print('Found %d images belonging to %d classes.' % (self.nb_sample, self.nb_class))
+        print('Found %d images belonging to %d classes.' %
+              (self.nb_sample, self.nb_class))
 
-        # second, build an index of the images in the different class subfolders
+        # second, build an index of the images in the different class
+        # subfolders
         self.filenames = []
         self.classes = np.zeros((self.nb_sample,), dtype='int32')
         i = 0
@@ -971,12 +990,15 @@ class DirectoryIterator(Iterator):
                         i += 1
                         # add filename relative to directory
                         absolute_path = os.path.join(root, fname)
-                        self.filenames.append(os.path.relpath(absolute_path, directory))
-        super(DirectoryIterator, self).__init__(self.nb_sample, batch_size, shuffle, seed)
+                        self.filenames.append(
+                            os.path.relpath(absolute_path, directory))
+        super(DirectoryIterator, self).__init__(
+            self.nb_sample, batch_size, shuffle, seed)
 
     def next(self):
         with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
+            index_array, current_index, current_batch_size = next(
+                self.index_generator)
         # The transformation of images is not under thread lock
         # so it can be done in parallel
 
@@ -986,12 +1008,13 @@ class DirectoryIterator(Iterator):
         if self.pool:
             pipeline = self.image_data_generator.pipeline()
             result = self.pool.map(process_image_pipeline_dir, ((pipeline,
-                self.filenames[j],
-                self.directory,
-                grayscale,
-                self.target_size,
-                self.dim_ordering,
-                self.rngs[i%self.batch_size]) for i, j in enumerate(index_array)))
+                                                                 self.filenames[
+                                                                     j],
+                                                                 self.directory,
+                                                                 grayscale,
+                                                                 self.target_size,
+                                                                 self.dim_ordering,
+                                                                 self.rngs[i % self.batch_size]) for i, j in enumerate(index_array)))
             batch_x = np.array(result)
         else:
             # TODO: also utilize image_data_generator.pipeline()?
@@ -1012,7 +1035,8 @@ class DirectoryIterator(Iterator):
                 img = array_to_img(batch_x[i], self.dim_ordering, scale=True)
                 fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
                                                                   index=current_index + i,
-                                                                  hash=np.random.randint(1e4),
+                                                                  hash=np.random.randint(
+                                                                      1e4),
                                                                   format=self.save_format)
                 img.save(os.path.join(self.save_to_dir, fname))
         # build batch of labels
