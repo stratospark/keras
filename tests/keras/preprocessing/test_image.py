@@ -5,6 +5,7 @@ import numpy as np
 import os
 import shutil
 import tempfile
+import multiprocessing
 
 
 class TestImage:
@@ -25,9 +26,12 @@ class TestImage:
             gray_images.append(im)
 
         cls.all_test_images = [rgb_images, gray_images]
+        cls.pool = multiprocessing.Pool(processes=2)
 
     def teardown_class(cls):
         del cls.all_test_images
+        cls.pool.terminate()
+        cls.pool.join()
 
     def test_image_data_generator(self):
         for test_images in self.all_test_images:
@@ -52,6 +56,39 @@ class TestImage:
                 cval=0.5,
                 horizontal_flip=True,
                 vertical_flip=True)
+            generator.fit(images, augment=True)
+
+            tmp_folder = tempfile.mkdtemp(prefix='test_images')
+            for x, y in generator.flow(images, np.arange(images.shape[0]),
+                                       shuffle=True, save_to_dir=tmp_folder):
+                assert x.shape[1:] == images.shape[1:]
+                break
+            shutil.rmtree(tmp_folder)
+
+    def test_image_data_generator_multiprocess(self):
+        for test_images in self.all_test_images:
+            img_list = []
+            for im in test_images:
+                img_list.append(image.img_to_array(im)[None, ...])
+
+            images = np.vstack(img_list)
+            generator = image.ImageDataGenerator(
+                featurewise_center=True,
+                samplewise_center=True,
+                featurewise_std_normalization=True,
+                samplewise_std_normalization=True,
+                zca_whitening=True,
+                rotation_range=90.,
+                width_shift_range=0.1,
+                height_shift_range=0.1,
+                shear_range=0.5,
+                zoom_range=0.2,
+                channel_shift_range=0.,
+                fill_mode='nearest',
+                cval=0.5,
+                horizontal_flip=True,
+                vertical_flip=True,
+                pool=self.pool)
             generator.fit(images, augment=True)
 
             tmp_folder = tempfile.mkdtemp(prefix='test_images')
@@ -192,3 +229,4 @@ class TestImage:
 
 if __name__ == '__main__':
     pytest.main([__file__])
+
